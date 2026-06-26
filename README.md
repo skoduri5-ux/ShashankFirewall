@@ -1,72 +1,91 @@
 # 🛡️ ShashFirewall v2
 
-A Python-based **Stateful Firewall & Intrusion Prevention System (IPS)** that combines **Packet Filtering (ACL)** and **Stateful Inspection** to detect and mitigate common network attacks in real time.
+A Python-based **Stateful Firewall & Intrusion Prevention System (IPS)** that combines **Packet Filtering (ACL)** and **Stateful Inspection** to monitor, detect, and mitigate common network attacks in real time using **Scapy**, **Flask**, and **Linux iptables**.
 
 ---
 
-## 🚀 Features
+# 🚀 Features
 
-### 🔵 Packet Filtering (Stateless Engine)
+## 🔵 Packet Filtering Engine (Stateless)
 
-* Access Control List (ACL) rule engine
-* Source/Destination IP filtering
-* Port filtering
-* Protocol filtering (TCP, UDP, ICMP)
-* First-match rule evaluation
-* Unmatched traffic logging
-
-### 🟣 Stateful Inspection Engine
-
-* TCP connection tracking
-* Full TCP state machine
-
-  * SYN_SENT
-  * SYN_RCVD
-  * ESTABLISHED
-  * FIN_WAIT
-  * CLOSED
-* Connection timeout handling
-* Detection of invalid state transitions
+* Access Control List (ACL) Rule Engine
+* Source IP Filtering
+* Destination IP Filtering
+* TCP/UDP/ICMP Protocol Filtering
+* Port-based Filtering
+* First-Match Rule Evaluation
+* Unmatched Traffic Logging
 
 ---
 
-## 🛡️ Attack Detection
+## 🟣 Stateful Inspection Engine
 
-* Brute Force Detection
-* ICMP Flood Detection
-* SYN Flood Detection
-* Half-open Connection Detection
-* Out-of-State TCP Packet Detection
+Maintains a live TCP connection table by tracking the entire TCP lifecycle.
+
+Supported TCP States:
+
+* SYN_SENT
+* SYN_RCVD
+* ESTABLISHED
+* FIN_WAIT
+* CLOSED
+
+Features:
+
+* Stateful Connection Tracking
+* Connection Timeout Cleanup
+* Invalid State Detection
+* Half-open Connection Monitoring
 
 ---
 
-## ⚔️ Countermeasures
+# 🛡️ Attack Detection
 
-When an attack is detected, the firewall can automatically:
+ShashFirewall can detect:
+
+* SSH Brute Force
+* TCP SYN Flood
+* ICMP Flood
+* Half-open Connection Flood
+* Invalid TCP State Transitions
+* Port Scanning (optional)
+
+---
+
+# ⚔️ Countermeasures
+
+When malicious activity exceeds the configured threshold, the firewall can automatically:
 
 * Block attacker IP using Linux iptables
-* Deploy TCP RST Volley
-* Deploy Tarpit
+* Send TCP RST Volley
+* Deploy TCP Tarpit
 * Log attack details
-* Display alerts on the dashboard
+* Display alerts on the live dashboard
 
 ---
 
-## 📊 Dashboard
+# 📊 Dashboard
 
-Real-time Flask dashboard displaying:
+The integrated Flask dashboard provides:
 
-* Total Packets
+* Total Packets Processed
 * ACL Denied Packets
 * Stateful Denied Packets
-* Detected Attacks
-* Blocked IP Addresses
+* Attack Counter
 * Live Event Feed
+* Blocked IP List
 * TCP Connection Table
+* Firewall Statistics
+
+Dashboard URL:
+
+```
+http://localhost:5000
+```
 
 ---
 
-## 🏗️ Project Architecture
+# 🏗️ Architecture
 
 ```
 Incoming Packet
@@ -84,7 +103,7 @@ Attack Detection
 Countermeasures
  ├── iptables Block
  ├── TCP RST Volley
- └── Tarpit
+ └── TCP Tarpit
         │
         ▼
 Dashboard & Logs
@@ -92,18 +111,20 @@ Dashboard & Logs
 
 ---
 
-## 🧰 Technologies Used
+# 🧰 Technologies Used
 
 * Python 3
 * Scapy
 * Flask
 * Linux iptables
-* Threading
 * Socket Programming
+* Threading
+* Docker
+* Docker Compose
 
 ---
 
-## 📂 Project Structure
+# 📂 Project Structure
 
 ```
 ShashFirewall/
@@ -111,102 +132,203 @@ ShashFirewall/
 ├── firewall_v2.py
 ├── test_firewall_v2.py
 ├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── README.md
-├── .gitignore
-└── screenshots/
+├── screenshots/
+└── .gitignore
 ```
 
 ---
 
-## ⚙️ Installation
+# 💻 Requirements
 
-Clone the repository:
+* Ubuntu / Debian / Kali Linux
+* Python 3.10+
+* Root Privileges
+* Linux iptables
+* Git
+
+---
+
+# ⚙️ Installation
+
+## Clone Repository
 
 ```bash
-git clone https://github.com/<your-username>/ShashankFirewall.git
+git clone https://github.com/skoduri5-ux/ShashankFirewall.git
 cd ShashankFirewall
 ```
 
-Create a virtual environment:
+---
+
+## Install System Packages
+
+Ubuntu / Debian:
+
+```bash
+sudo apt update
+
+sudo apt install -y \
+python3 \
+python3-pip \
+python3-venv \
+python3-dev \
+iptables \
+tcpdump \
+iproute2 \
+git
+```
+
+---
+
+## Create Virtual Environment
 
 ```bash
 python3 -m venv venv
+
 source venv/bin/activate
 ```
 
-Install dependencies:
+---
+
+## Install Python Dependencies
 
 ```bash
+pip install --upgrade pip
+
 pip install -r requirements.txt
 ```
 
 ---
 
-## ▶️ Run
+# ▶️ Running the Firewall
 
 ```bash
 sudo ./venv/bin/python firewall_v2.py --iface eth0
 ```
 
-Dashboard:
+or
 
-```
-http://localhost:5000
+```bash
+sudo python3 firewall_v2.py --iface eth0
 ```
 
 ---
 
-## 🧪 Testing
+# 🐳 Docker Deployment
 
-### ICMP Flood
+## Build
 
 ```bash
-sudo ping -f 8.8.8.8
+docker compose build
 ```
 
-### Brute Force Simulation
+or
 
 ```bash
-for i in {1..10}; do
-    nc -vz <target-ip> 8080
-done
+docker build -t shashfirewall .
+```
+
+## Run
+
+```bash
+docker compose up
+```
+
+or
+
+```bash
+docker run \
+--network host \
+--cap-add NET_ADMIN \
+--cap-add NET_RAW \
+shashfirewall
 ```
 
 ---
 
-## 📸 Screenshots
+# 🧪 Testing
 
-Add screenshots such as:
+## SSH Connection
+
+```bash
+ssh username@<target-ip>
+```
+
+---
+
+## SSH Brute Force Simulation
+
+```powershell
+1..20 | % {
+    Test-NetConnection <target-ip> -Port 22 | Out-Null
+}
+```
+
+---
+
+## HTTP Connection Test
+
+```bash
+python3 -m http.server 8080
+```
+
+Windows:
+
+```powershell
+Test-NetConnection <target-ip> -Port 8080
+```
+
+---
+
+## ICMP Flood
+
+```bash
+sudo ping -f <target-ip>
+```
+
+---
+
+# 📸 Screenshots
+
+Include screenshots of:
 
 * Dashboard
-* Connection Table
+* Stateful Connection Table
 * Attack Detection
-* Blocked IPs
+* Blocked IP List
 * iptables Rules
+* Docker Deployment
 * Live Event Feed
 
 ---
 
-## 📈 Future Improvements
+# 📈 Future Improvements
 
 * IPv6 Support
 * Geo-IP Blocking
-* Web-based Rule Management
-* Email Alerts
 * SQLite Logging
+* Email Alerts
+* Rule Management UI
 * ML-based Anomaly Detection
 * Rule Import/Export
+* Prometheus Metrics
+* Grafana Dashboard
 
 ---
 
-## 👨‍💻 Author
+# 👨‍💻 Author
 
 **Shashank Koduri**
 
-* GitHub: https://github.com/skoduri5-ux
+GitHub:
+
+https://github.com/skoduri5-ux
 
 ---
 
-## 📜 License
+# 📜 License
 
-This project is released under the MIT License.
+Released under the MIT License.
