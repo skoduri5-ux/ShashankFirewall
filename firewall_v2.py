@@ -314,13 +314,27 @@ log = logging.getLogger("ShashFirewall")
 
 # ─── iptables Helpers ─────────────────────────────────────────────────────────
 
+import os
+
 def iptables(args):
     try:
-        r = subprocess.run(["sudo","iptables"] + args, capture_output=True, text=True)
-        return r.returncode == 0
-    except FileNotFoundError:
-        return False
+        cmd = ["iptables"] + args if os.geteuid() == 0 else ["sudo", "iptables"] + args
 
+        log.info(f"[IPTABLES] Running: {' '.join(cmd)}")
+
+        r = subprocess.run(cmd, capture_output=True, text=True)
+
+        log.info(f"[IPTABLES] rc={r.returncode}")
+        if r.stdout:
+            log.info(f"[IPTABLES stdout] {r.stdout.strip()}")
+        if r.stderr:
+            log.error(f"[IPTABLES stderr] {r.stderr.strip()}")
+
+        return r.returncode == 0
+
+    except Exception as e:
+        log.exception(f"[IPTABLES EXCEPTION] {e}")
+        return False
 def block_ip(ip: str, reason: str = "attack"):
     if is_trusted(ip):
         log.warning(f"[WHITELIST] Block attempt on trusted IP {ip} ignored ({reason})")

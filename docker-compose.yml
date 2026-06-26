@@ -1,0 +1,12 @@
+services:
+  firewall:
+    build: .
+    container_name: shashfirewall
+
+    network_mode: host
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+    restart: unless-stopped
